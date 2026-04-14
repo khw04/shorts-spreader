@@ -1,0 +1,32 @@
+{
+  "name": "shorts-spreader",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Bootstrap workspace for the Shorts Spreader MVP.",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node -e \"process.env.NODE_ENV='development'; require('./server')\"",
+    "build": "next build",
+    "start": "node -e \"process.env.NODE_ENV=process.env.NODE_ENV || 'production'; require('./server')\"",
+    "lint": "eslint . --ext .js,.jsx",
+    "test:unit": "vitest run --config vitest.unit.config.js",
+    "test:protocol": "vitest run --config vitest.protocol.config.js",
+    "test:e2e": "playwright test --config playwright.config.js",
+    "package": "npm run package:extension",
+    "package:extension": "node scripts/package-extension.js"
+  },
+  "dependencies": {
+    "next": "14.2.30",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "ws": "8.18.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.54.2",
+    "eslint": "8.57.1",
+    "eslint-config-next": "14.2.30",
+    "typescript": "5.8.3",
+    "typescript-language-server": "4.4.0",
+    "vitest": "3.2.4"
+  }
+}

@@ -1,0 +1,12 @@
+node_modules/
+.next/
+coverage/
+dist/
+playwright-report/
+test-results/
+.playwright/
+public/extension.zip
+extension-build/
+*.log
+Thumbs.db
+.DS_Store
