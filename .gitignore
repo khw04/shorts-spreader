@@ -5,6 +5,8 @@ dist/
 playwright-report/
 test-results/
 .playwright/
+.playwright-mcp/
+.sisyphus/
 public/extension.zip
 extension-build/
 *.log
