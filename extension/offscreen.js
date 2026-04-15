@@ -52,6 +52,11 @@
     manager.connect();
   }
 
+  function isManagerHealthy() {
+    const connectionStatus = manager?.getState?.().connectionStatus;
+    return connectionStatus === 'connecting' || connectionStatus === 'connected' || connectionStatus === 'reconnecting';
+  }
+
   function syncManager(payload) {
     const normalizedPayload = {
       websocketUrl: payload.websocketUrl,
@@ -62,7 +67,7 @@
 
     const shouldReconnect =
       !manager ||
-      payload.reconnect === true ||
+      (payload.reconnect === true && !isManagerHealthy()) ||
       normalizedPayload.websocketUrl !== currentConfig.websocketUrl ||
       !sameJson(normalizedPayload.fallbackUrls, currentConfig.fallbackUrls) ||
       !sameJson(normalizedPayload.registrationPayload, currentConfig.registrationPayload);

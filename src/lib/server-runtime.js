@@ -160,14 +160,62 @@ function createServerRuntime({
   }
 
   let heartbeatTimer = null;
+  let socketSequence = 0;
 
-  function handleConnection(socket) {
+  function describeSocket(socket) {
+    const socketId = socket.__debugSocketId || 'socket-unknown';
+    const clientId = socket.clientMeta?.clientId || 'unregistered';
+    const role = socket.clientMeta?.role || 'unknown';
+    return { socketId, clientId, role };
+  }
+
+  function updateSocketDebug(socket, patch) {
+    socket.__debugContext = {
+      connectedAt: socket.__debugContext?.connectedAt || new Date().toISOString(),
+      requestPath: socket.__debugContext?.requestPath || 'unknown',
+      remoteAddress: socket.__debugContext?.remoteAddress || 'unknown',
+      lastMessageType: socket.__debugContext?.lastMessageType || null,
+      ...patch
+    };
+  }
+
+  function logSuspiciousSocketClose(socket) {
+    const connectedAt = socket.__debugContext?.connectedAt;
+    const lifetimeMs = connectedAt ? Date.now() - new Date(connectedAt).getTime() : null;
+    const isShortLived = typeof lifetimeMs === 'number' && lifetimeMs < 5000;
+    const isDashboard = socket.clientMeta?.role === 'dashboard';
+    const isUnregistered = !socket.clientMeta;
+
+    if (!isDashboard && !isUnregistered && !isShortLived) {
+      return;
+    }
+
+    console.warn('[ws] suspicious_close', {
+      ...describeSocket(socket),
+      connectedAt: connectedAt || 'unknown',
+      lifetimeMs: lifetimeMs ?? 'unknown',
+      requestPath: socket.__debugContext?.requestPath || 'unknown',
+      remoteAddress: socket.__debugContext?.remoteAddress || 'unknown',
+      lastMessageType: socket.__debugContext?.lastMessageType || 'none'
+    });
+  }
+
+  function handleConnection(socket, request) {
+    socketSequence += 1;
+    socket.__debugSocketId = `socket-${socketSequence}`;
     socket.clientMeta = null;
     socket.isAlive = true;
+    updateSocketDebug(socket, {
+      requestPath: request?.url || 'unknown',
+      remoteAddress: request?.socket?.remoteAddress || 'unknown'
+    });
+
+    console.info('[ws] connection', describeSocket(socket));
 
     if (typeof socket.on === 'function') {
       socket.on('pong', () => {
         socket.isAlive = true;
+        console.info('[ws] pong', describeSocket(socket));
       });
     }
 
@@ -193,6 +241,7 @@ function createServerRuntime({
     }
 
     const { type, payload } = validatedMessage.value;
+    updateSocketDebug(socket, { lastMessageType: type });
 
     if (type === 'register_client') {
       registerClient(payload);
@@ -202,6 +251,7 @@ function createServerRuntime({
         nickname: payload.nickname,
         activeTab: socket.clientMeta?.activeTab || null
       };
+      console.info('[ws] register_client', describeSocket(socket));
       sendStatsUpdate(socket);
       broadcastStatsUpdate(wss, { excludeSockets: [socket] });
       return { handled: true, type };
@@ -213,6 +263,10 @@ function createServerRuntime({
         role: 'dashboard',
         dashboardId: dashboard.dashboardId
       };
+      console.info('[ws] register_dashboard', {
+        ...describeSocket(socket),
+        dashboardId: dashboard.dashboardId
+      });
       sendStatsUpdate(socket);
       broadcastStatsUpdate(wss, { excludeSockets: [socket] });
       return { handled: true, type };
@@ -228,6 +282,12 @@ function createServerRuntime({
         ...socket.clientMeta,
         activeTab
       };
+      console.info('[ws] set_active_tab', {
+        ...describeSocket(socket),
+        tabId: activeTab.tabId,
+        isEligible: activeTab.isEligible,
+        siteDomain: activeTab.siteDomain
+      });
       broadcastStatsUpdate(wss);
       return { handled: true, type, activeTab };
     }
@@ -292,6 +352,9 @@ function createServerRuntime({
   }
 
   function handleClose(socket) {
+    console.warn('[ws] close', describeSocket(socket));
+    logSuspiciousSocketClose(socket);
+
     if (socket.clientMeta?.role === 'extension') {
       unregisterClient(socket.clientMeta.clientId);
       broadcastStatsUpdate(wss, { excludeSockets: [socket] });
@@ -319,6 +382,7 @@ function createServerRuntime({
         }
 
         if (socket.isAlive === false) {
+          console.warn('[ws] terminate', describeSocket(socket));
           if (typeof socket.terminate === 'function') {
             socket.terminate();
           }
@@ -326,6 +390,10 @@ function createServerRuntime({
           return;
         }
 
+        console.info('[ws] ping', {
+          ...describeSocket(socket),
+          isAlive: socket.isAlive
+        });
         socket.isAlive = false;
 
         if (typeof socket.ping === 'function') {

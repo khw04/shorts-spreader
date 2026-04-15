@@ -31,6 +31,12 @@ body {
   border-radius: 18px;
 }
 
+.hero-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
 .eyebrow {
   margin: 0 0 8px;
   font-size: 10px;
@@ -135,6 +141,10 @@ input:focus {
   background: rgba(245, 234, 219, 0.08);
   color: #f5eadb;
   border: 1px solid rgba(245, 234, 219, 0.12);
+}
+
+.refresh-button {
+  padding: 8px 12px;
 }
 
 button:hover {

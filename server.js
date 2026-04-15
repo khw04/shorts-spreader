@@ -22,14 +22,22 @@ app.prepare().then(() => {
 
   runtime.startHeartbeat();
 
-  wss.on('connection', (socket) => {
-    runtime.handleConnection(socket);
+  wss.on('connection', (socket, request) => {
+    runtime.handleConnection(socket, request);
 
     socket.on('message', (rawMessage) => {
       runtime.handleMessage(socket, rawMessage);
     });
 
-    socket.on('close', () => {
+    socket.on('close', (code, reasonBuffer) => {
+      const reason = typeof reasonBuffer?.toString === 'function' ? reasonBuffer.toString() : '';
+      console.warn('[ws] socket.onclose', {
+        socketId: socket.__debugSocketId || 'socket-unknown',
+        clientId: socket.clientMeta?.clientId || 'unregistered',
+        role: socket.clientMeta?.role || 'unknown',
+        code: code ?? 'unknown',
+        reason: reason || 'no_reason'
+      });
       runtime.handleClose(socket);
     });
   });

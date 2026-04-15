@@ -30,6 +30,12 @@ const state = {
 };
 
 let initPromise = null;
+let creatingOffscreenDocumentPromise = null;
+let bootstrapPromise = null;
+let httpProbePromise = null;
+let lastHttpProbeAt = 0;
+
+const HTTP_PROBE_COOLDOWN_MS = 10000;
 
 function clone(value) {
   return value ? JSON.parse(JSON.stringify(value)) : value;
@@ -157,6 +163,16 @@ async function saveConnectionSettings({ serverOrigin }) {
 }
 
 async function probeHttpServer() {
+  const now = Date.now();
+
+  if (httpProbePromise) {
+    return httpProbePromise;
+  }
+
+  if (lastHttpProbeAt && now - lastHttpProbeAt < HTTP_PROBE_COOLDOWN_MS) {
+    return;
+  }
+
   const probeCandidates = [
     state.dashboardUrl.replace(/\/dashboard$/, '/api/stats'),
     ...(
@@ -168,19 +184,26 @@ async function probeHttpServer() {
     )
   ];
 
-  for (const url of probeCandidates) {
-    try {
-      const response = await fetch(url, { method: 'GET' });
-      state.httpProbeUrl = url;
-      state.httpProbeStatus = `http_${response.status}`;
-      broadcastState();
-      return;
-    } catch (error) {
-      state.httpProbeUrl = url;
-      state.httpProbeStatus = `http_error:${error?.message || 'unknown'}`;
-      broadcastState();
+  lastHttpProbeAt = now;
+  httpProbePromise = (async () => {
+    for (const url of probeCandidates) {
+      try {
+        const response = await fetch(url, { method: 'GET' });
+        state.httpProbeUrl = url;
+        state.httpProbeStatus = `http_${response.status}`;
+        broadcastState();
+        return;
+      } catch (error) {
+        state.httpProbeUrl = url;
+        state.httpProbeStatus = `http_error:${error?.message || 'unknown'}`;
+        broadcastState();
+      }
     }
-  }
+  })().finally(() => {
+    httpProbePromise = null;
+  });
+
+  return httpProbePromise;
 }
 
 async function ensureOffscreenDocument() {
@@ -201,11 +224,17 @@ async function ensureOffscreenDocument() {
     }
   }
 
-  await chrome.offscreen.createDocument({
-    url: OFFSCREEN_DOCUMENT_PATH,
-    reasons: ['WORKERS'],
-    justification: 'Keep the websocket connection alive outside the service worker lifecycle.'
-  });
+  if (!creatingOffscreenDocumentPromise) {
+    creatingOffscreenDocumentPromise = chrome.offscreen.createDocument({
+      url: OFFSCREEN_DOCUMENT_PATH,
+      reasons: ['WORKERS'],
+      justification: 'Keep the websocket connection alive outside the service worker lifecycle.'
+    }).finally(() => {
+      creatingOffscreenDocumentPromise = null;
+    });
+  }
+
+  await creatingOffscreenDocumentPromise;
 
   return true;
 }
@@ -253,12 +282,12 @@ async function syncOffscreenConnection(options = {}) {
     return { ok: false, error: 'offscreen_unavailable' };
   }
 
-  state.connectionStatus = 'connecting';
   if (options.reconnect === true) {
+    state.connectionStatus = 'connecting';
     state.lastError = null;
+    state.websocketActiveUrl = state.websocketUrl;
+    broadcastState();
   }
-  state.websocketActiveUrl = state.websocketUrl;
-  broadcastState();
 
   return sendRuntimeMessage({
     type: 'offscreen_sync',
@@ -558,22 +587,36 @@ async function initialize() {
   initPromise = (async () => {
     await ensureIdentity();
     await loadConnectionSettings();
-    await probeHttpServer();
     await ensureOffscreenDocument();
     await refreshActiveTabSnapshot();
-    await syncOffscreenConnection({ reconnect: true });
+    await syncOffscreenConnection();
     broadcastState();
   })();
 
   return initPromise;
 }
 
+async function bootstrapBackground() {
+  if (bootstrapPromise) {
+    return bootstrapPromise;
+  }
+
+  bootstrapPromise = (async () => {
+    await initialize();
+    await probeHttpServer();
+  })().finally(() => {
+    bootstrapPromise = null;
+  });
+
+  return bootstrapPromise;
+}
+
 chrome.runtime.onInstalled.addListener(() => {
-  initialize();
+  bootstrapBackground();
 });
 
 chrome.runtime.onStartup.addListener(() => {
-  initialize();
+  bootstrapBackground();
 });
 
 chrome.tabs.onActivated.addListener(() => {
@@ -597,7 +640,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message?.type === 'offscreen_ready') {
-    initialize().then(() => syncOffscreenConnection({ reconnect: true }));
+    initialize().then(() => syncOffscreenConnection());
     return false;
   }
 
@@ -612,9 +655,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message?.type === 'popup_get_state') {
-    initialize().then(() => {
+    const respondWithState = () => {
       sendResponse(getPopupState());
-    });
+    };
+
+    if (initPromise) {
+      initPromise.then(respondWithState);
+    } else {
+      respondWithState();
+    }
+
     return true;
   }
 
@@ -641,4 +691,4 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   return false;
 });
 
-initialize();
+bootstrapBackground();

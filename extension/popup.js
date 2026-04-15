@@ -11,6 +11,7 @@ const hitCount = document.getElementById('hit-count');
 const dashboardButton = document.getElementById('dashboard-button');
 const spreadButton = document.getElementById('spread-button');
 const spreadStatus = document.getElementById('spread-status');
+const refreshStateButton = document.getElementById('refresh-state-button');
 
 let latestState = null;
 
@@ -36,7 +37,15 @@ function render(state) {
 }
 
 function requestState() {
+  if (refreshStateButton) {
+    refreshStateButton.disabled = true;
+  }
+
   chrome.runtime.sendMessage({ type: 'popup_get_state' }, (response) => {
+    if (refreshStateButton) {
+      refreshStateButton.disabled = false;
+    }
+
     if (chrome.runtime.lastError) {
       statusCopy.textContent = chrome.runtime.lastError.message;
       return;
@@ -45,6 +54,10 @@ function requestState() {
     render(response);
   });
 }
+
+refreshStateButton?.addEventListener('click', () => {
+  requestState();
+});
 
 saveNicknameButton?.addEventListener('click', () => {
   saveNicknameButton.disabled = true;
