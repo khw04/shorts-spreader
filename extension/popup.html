@@ -7,11 +7,39 @@
     <link rel="stylesheet" href="popup.css" />
   </head>
   <body>
-    <main>
-      <h1>Shorts Spreader</h1>
-      <p id="status">Bootstrap placeholder</p>
-      <button id="ping-button" type="button">Ping background</button>
+    <main class="shell">
+      <section class="hero">
+        <p class="eyebrow">Task 5 connection</p>
+        <div class="hero-row">
+          <h1>Shorts Spreader</h1>
+          <span id="connection-pill" class="pill disconnected">Disconnected</span>
+        </div>
+        <p id="status-copy" class="status-copy">Background service is checking the socket.</p>
+      </section>
+
+      <section class="panel">
+        <label class="field" for="nickname-input">
+          <span>Nickname</span>
+          <input id="nickname-input" type="text" maxlength="40" placeholder="Quiet Otter" autocomplete="off" />
+        </label>
+        <button id="save-nickname-button" class="primary-button" type="button">Save nickname</button>
+      </section>
+
+      <section class="stats-grid" aria-label="My counters">
+        <article class="stat-card">
+          <span class="stat-label">My spread count</span>
+          <strong id="spread-count">0</strong>
+        </article>
+        <article class="stat-card">
+          <span class="stat-label">My hit count</span>
+          <strong id="hit-count">0</strong>
+        </article>
+      </section>
+
+      <button id="dashboard-button" class="secondary-button" type="button">Open dashboard</button>
     </main>
+    <script src="shared.js"></script>
+    <script src="popup-state.js"></script>
     <script src="popup.js"></script>
   </body>
   </html>

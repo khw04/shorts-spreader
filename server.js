@@ -2,6 +2,7 @@ const { createServer } = require('http');
 const { parse } = require('url');
 const next = require('next');
 const { WebSocketServer } = require('ws');
+const { createServerRuntime } = require('./src/lib/server-runtime');
 
 const dev = process.env.NODE_ENV === 'development';
 const hostname = '0.0.0.0';
@@ -17,14 +18,24 @@ app.prepare().then(() => {
   });
 
   const wss = new WebSocketServer({ server });
+  const runtime = createServerRuntime({ wss });
+
+  runtime.startHeartbeat();
 
   wss.on('connection', (socket) => {
-    socket.send(
-      JSON.stringify({
-        type: 'bootstrap_ready',
-        message: 'WebSocket server bootstrap is running.'
-      })
-    );
+    runtime.handleConnection(socket);
+
+    socket.on('message', (rawMessage) => {
+      runtime.handleMessage(socket, rawMessage);
+    });
+
+    socket.on('close', () => {
+      runtime.handleClose(socket);
+    });
+  });
+
+  server.on('close', () => {
+    runtime.stopHeartbeat();
   });
 
   server.listen(port, hostname, () => {

@@ -54,4 +54,14 @@ describe('bootstrap state', () => {
       'package:extension': expect.any(String)
     });
   });
+
+  it('wires logs and leaderboard routes to the shared state selectors', () => {
+    const logsRouteSource = fs.readFileSync(path.join(projectRoot, 'src', 'app', 'api', 'logs', 'route.js'), 'utf8');
+    const leaderboardRouteSource = fs.readFileSync(path.join(projectRoot, 'src', 'app', 'api', 'leaderboard', 'route.js'), 'utf8');
+
+    expect(logsRouteSource).toContain("getSpreadLog");
+    expect(logsRouteSource).toContain('data: getSpreadLog()');
+    expect(leaderboardRouteSource).toContain('getLeaderboardSnapshot');
+    expect(leaderboardRouteSource).toContain('data: getLeaderboardSnapshot()');
+  });
 });
