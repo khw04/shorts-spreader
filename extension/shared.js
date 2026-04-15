@@ -1,11 +1,15 @@
 (function initSharedScope(globalScope) {
   const STORAGE_KEYS = {
     clientId: 'clientId',
-    nickname: 'nickname'
+    nickname: 'nickname',
+    serverOrigin: 'serverOrigin',
+    websocketUrl: 'websocketUrl',
+    dashboardUrl: 'dashboardUrl'
   };
 
-  const DEFAULT_WEBSOCKET_URL = 'ws://localhost:3000';
-  const DEFAULT_DASHBOARD_URL = 'http://localhost:3000/dashboard';
+  const DEFAULT_SERVER_ORIGIN = 'http://127.0.0.1:3000';
+  const DEFAULT_WEBSOCKET_URL = 'ws://127.0.0.1:3000';
+  const DEFAULT_DASHBOARD_URL = 'http://127.0.0.1:3000/dashboard';
   const MAX_RECONNECT_DELAY_MS = 30000;
   const BASE_RECONNECT_DELAY_MS = 1000;
   const NICKNAME_ADJECTIVES = ['Amber', 'Velvet', 'Solar', 'Mellow', 'Quiet', 'Lucky', 'Fable', 'Gentle'];
@@ -91,6 +95,7 @@
   const sharedApi = {
     BASE_RECONNECT_DELAY_MS,
     DEFAULT_DASHBOARD_URL,
+    DEFAULT_SERVER_ORIGIN,
     DEFAULT_WEBSOCKET_URL,
     MAX_RECONNECT_DELAY_MS,
     STORAGE_KEYS,

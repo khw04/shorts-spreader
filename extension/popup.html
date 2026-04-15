@@ -15,6 +15,8 @@
           <span id="connection-pill" class="pill disconnected">Disconnected</span>
         </div>
         <p id="status-copy" class="status-copy">Background service is checking the socket.</p>
+        <p id="socket-meta" class="status-copy">Socket info will appear here.</p>
+        <p id="http-meta" class="status-copy">HTTP probe will appear here.</p>
       </section>
 
       <section class="panel">
@@ -23,6 +25,11 @@
           <input id="nickname-input" type="text" maxlength="40" placeholder="Quiet Otter" autocomplete="off" />
         </label>
         <button id="save-nickname-button" class="primary-button" type="button">Save nickname</button>
+      </section>
+
+      <section class="panel">
+        <button id="spread-button" class="primary-button" type="button">Spread current shorts</button>
+        <p id="spread-status" class="status-copy">The active tab will be used automatically when it is a YouTube Shorts page.</p>
       </section>
 
       <section class="stats-grid" aria-label="My counters">

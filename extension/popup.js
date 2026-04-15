@@ -2,11 +2,15 @@ const { derivePopupViewModel } = self.ShortsSpreaderPopupState;
 
 const connectionPill = document.getElementById('connection-pill');
 const statusCopy = document.getElementById('status-copy');
+const socketMeta = document.getElementById('socket-meta');
+const httpMeta = document.getElementById('http-meta');
 const nicknameInput = document.getElementById('nickname-input');
 const saveNicknameButton = document.getElementById('save-nickname-button');
 const spreadCount = document.getElementById('spread-count');
 const hitCount = document.getElementById('hit-count');
 const dashboardButton = document.getElementById('dashboard-button');
+const spreadButton = document.getElementById('spread-button');
+const spreadStatus = document.getElementById('spread-status');
 
 let latestState = null;
 
@@ -20,10 +24,15 @@ function render(state) {
   statusCopy.textContent = viewModel.isConnected
     ? 'Live counters are coming from the websocket session in the background worker.'
     : 'The websocket is unavailable right now. Counts will refresh after reconnect.';
+  socketMeta.textContent = viewModel.lastError
+    ? `Socket: ${viewModel.websocketActiveUrl || viewModel.websocketUrl} | ${viewModel.lastError}`
+    : `Socket: ${viewModel.websocketActiveUrl || viewModel.websocketUrl}`;
+  httpMeta.textContent = `HTTP: ${viewModel.httpProbeUrl || 'n/a'} | ${viewModel.httpProbeStatus || 'idle'}`;
   nicknameInput.value = viewModel.nickname;
   spreadCount.textContent = String(viewModel.totalSpreads);
   hitCount.textContent = String(viewModel.totalHits);
   dashboardButton.dataset.url = viewModel.dashboardUrl;
+  spreadButton.disabled = !viewModel.isConnected;
 }
 
 function requestState() {
@@ -62,6 +71,29 @@ dashboardButton?.addEventListener('click', () => {
   }
 
   chrome.tabs.create({ url: dashboardUrl });
+});
+
+spreadButton?.addEventListener('click', () => {
+  spreadButton.disabled = true;
+  spreadStatus.textContent = 'Checking the active tab and sending the spread request...';
+
+  chrome.runtime.sendMessage({
+    type: 'popup_trigger_spread'
+  }, (response) => {
+    spreadButton.disabled = false;
+
+    if (chrome.runtime.lastError) {
+      spreadStatus.textContent = chrome.runtime.lastError.message;
+      return;
+    }
+
+    if (!response?.ok) {
+      spreadStatus.textContent = response?.error || 'Spread request failed.';
+      return;
+    }
+
+    spreadStatus.textContent = response.message || 'Spread request sent.';
+  });
 });
 
 chrome.runtime.onMessage.addListener((message) => {

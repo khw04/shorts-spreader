@@ -17,6 +17,7 @@
 
   function createBackgroundConnectionManager({
     url = shared.DEFAULT_WEBSOCKET_URL,
+    fallbackUrls = [],
     createSocket = (socketUrl) => new WebSocket(socketUrl),
     setTimeoutFn = setTimeout,
     clearTimeoutFn = clearTimeout,
@@ -31,11 +32,15 @@
     let hasConnected = false;
     let connectionStatus = 'idle';
     let lastError = null;
+    let activeUrl = url;
+    let urlCursor = 0;
+    const candidateUrls = [url, ...fallbackUrls].filter((value, index, list) => typeof value === 'string' && value && list.indexOf(value) === index);
 
     function emitState() {
       onStateChange?.({
         connectionStatus,
         lastError,
+        activeUrl,
         reconnectAttempt,
         reconnectDelayMs: reconnectAttempt > 0
           ? Math.min(shared.BASE_RECONNECT_DELAY_MS * (2 ** (reconnectAttempt - 1)), shared.MAX_RECONNECT_DELAY_MS)
@@ -46,7 +51,9 @@
 
     function setStatus(nextStatus, errorMessage = null) {
       connectionStatus = nextStatus;
-      lastError = errorMessage;
+      if (errorMessage !== null) {
+        lastError = errorMessage;
+      }
       emitState();
     }
 
@@ -110,7 +117,7 @@
       reconnectAttempt += 1;
       const delayMs = Math.min(shared.BASE_RECONNECT_DELAY_MS * (2 ** (reconnectAttempt - 1)), shared.MAX_RECONNECT_DELAY_MS);
 
-      setStatus('reconnecting');
+      setStatus('reconnecting', lastError);
       reconnectTimer = setTimeoutFn(() => {
         reconnectTimer = null;
         connect();
@@ -118,13 +125,25 @@
     }
 
     function connect() {
-      if (!url || socket) {
+      if (!candidateUrls.length || socket) {
         return socket;
       }
 
       clearReconnectTimer();
       setStatus(hasConnected ? 'reconnecting' : 'connecting');
-      const nextSocket = createSocket(url);
+      activeUrl = candidateUrls[urlCursor % candidateUrls.length];
+      let nextSocket;
+
+      try {
+        nextSocket = createSocket(activeUrl);
+      } catch (error) {
+        socket = null;
+        lastError = error?.message || 'websocket_constructor_error';
+        urlCursor = (urlCursor + 1) % candidateUrls.length;
+        scheduleReconnect();
+        return null;
+      }
+
       socket = nextSocket;
 
       nextSocket.onopen = () => {
@@ -134,9 +153,11 @@
 
         hasConnected = true;
         reconnectAttempt = 0;
+        lastError = null;
         setStatus('connected');
         sendRegistration();
         sendActiveTabSnapshot();
+        console.info('[ShortsSpreader] websocket connected', activeUrl);
       };
 
       nextSocket.onmessage = (event) => {
@@ -156,16 +177,24 @@
           return;
         }
 
-        setStatus('error', 'websocket_error');
+        setStatus('error', `websocket_error:${activeUrl}`);
+        console.error('[ShortsSpreader] websocket error', activeUrl);
       };
 
-      nextSocket.onclose = () => {
+      nextSocket.onclose = (event) => {
         if (socket !== nextSocket) {
           return;
         }
 
         clearSocketHandlers(nextSocket);
         socket = null;
+        urlCursor = (urlCursor + 1) % candidateUrls.length;
+        lastError = `websocket_close:${activeUrl}:${event?.code ?? 'unknown'}:${event?.reason || 'no_reason'}`;
+        console.warn('[ShortsSpreader] websocket closed', {
+          url: activeUrl,
+          code: event?.code ?? 'unknown',
+          reason: event?.reason || 'no_reason'
+        });
         scheduleReconnect();
       };
 
@@ -174,10 +203,26 @@
 
     return {
       connect,
+      disconnect() {
+        clearReconnectTimer();
+
+        if (!socket) {
+          return;
+        }
+
+        const targetSocket = socket;
+        clearSocketHandlers(targetSocket);
+        socket = null;
+
+        if (typeof targetSocket.close === 'function' && targetSocket.readyState === WebSocket.OPEN) {
+          targetSocket.close(1000, 'manual_disconnect');
+        }
+      },
       getState() {
         return {
           connectionStatus,
           lastError,
+          activeUrl,
           reconnectAttempt,
           hasConnected,
           isConnected: connectionStatus === 'connected'

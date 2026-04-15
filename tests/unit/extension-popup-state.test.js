@@ -41,11 +41,19 @@ describe('extension popup state helpers', () => {
       clientId: 'client-a',
       nickname: 'Quiet Otter',
       connectionStatus: 'reconnecting',
-      dashboardUrl: 'http://localhost:3000/dashboard'
+      dashboardUrl: 'http://localhost:3000/dashboard',
+      websocketUrl: 'ws://localhost:3000',
+      websocketActiveUrl: 'ws://127.0.0.1:3000',
+      httpProbeUrl: 'http://localhost:3000/api/stats',
+      httpProbeStatus: 'http_200',
+      lastError: 'websocket_close:ws://localhost:3000:1006:no_reason'
     });
 
     expect(viewModel.isConnected).toBe(false);
     expect(viewModel.connectionTone).toBe('disconnected');
     expect(viewModel.connectionLabel).toBe('Reconnecting…');
+    expect(viewModel.websocketUrl).toBe('ws://localhost:3000');
+    expect(viewModel.websocketActiveUrl).toBe('ws://127.0.0.1:3000');
+    expect(viewModel.httpProbeStatus).toBe('http_200');
   });
 });
