@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "description": "Bootstrap extension scaffold for the Shorts Spreader MVP.",
   "permissions": [
+    "alarms",
     "offscreen",
     "storage",
     "tabs",
@@ -17,7 +18,7 @@
     "service_worker": "background.js"
   },
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' http://127.0.0.1:3000 http://localhost:3000 ws://127.0.0.1:3000 ws://localhost:3000;"
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://shorts-spread.w00.kr wss://shorts-spread.w00.kr http://127.0.0.1:3000 http://localhost:3000 ws://127.0.0.1:3000 ws://localhost:3000;"
   },
   "action": {
     "default_title": "Shorts Spreader",

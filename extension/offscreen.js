@@ -74,6 +74,14 @@
 
     currentConfig = normalizedPayload;
     manager?.resendActiveTabSnapshot?.();
+
+    const currentState = manager?.getState?.();
+    if (currentState) {
+      postToBackground({
+        type: 'offscreen_state_changed',
+        payload: currentState
+      });
+    }
   }
 
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {

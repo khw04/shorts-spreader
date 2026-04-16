@@ -17,10 +17,22 @@ app.prepare().then(() => {
     handle(req, res, parsedUrl);
   });
 
-  const wss = new WebSocketServer({ server });
+  const wss = new WebSocketServer({ noServer: true });
   const runtime = createServerRuntime({ wss });
 
   runtime.startHeartbeat();
+
+  server.on('upgrade', (request, socket, head) => {
+    const { pathname } = parse(request.url);
+
+    if (pathname === '/ws' || pathname === '/ws/') {
+      wss.handleUpgrade(request, socket, head, (ws) => {
+        wss.emit('connection', ws, request);
+      });
+    } else {
+      socket.destroy();
+    }
+  });
 
   wss.on('connection', (socket) => {
     runtime.handleConnection(socket);

@@ -9,10 +9,10 @@ function getEligibility(url) {
       };
     }
 
-    if (['youtube.com', 'www.youtube.com', 'm.youtube.com'].includes(parsedUrl.hostname)) {
+    if (['youtube.com', 'www.youtube.com', 'm.youtube.com'].includes(parsedUrl.hostname) && parsedUrl.pathname.startsWith('/shorts/')) {
       return {
         isEligible: false,
-        ineligibleReason: 'youtube_tab'
+        ineligibleReason: 'youtube_shorts_tab'
       };
     }
 
@@ -34,7 +34,7 @@ function buildActiveTabSnapshot() {
 
   return {
     pageUrl,
-    pageTitle: document.title || 'Untitled page',
+    pageTitle: document.title || '제목 없는 페이지',
     siteDomain: window.location.hostname || 'unknown',
     isEligible: eligibility.isEligible,
     ineligibleReason: eligibility.ineligibleReason
@@ -151,36 +151,36 @@ function buildShortsAssets(shortsId) {
   if (!safeShortsId) {
     return {
       shortsUrl: 'https://www.youtube.com/shorts/',
-      thumbnailUrl: ''
+      thumbnailUrl: '',
+      embedUrl: ''
     };
   }
 
   return {
     shortsUrl: `https://www.youtube.com/shorts/${encodeURIComponent(safeShortsId)}`,
-    thumbnailUrl: `https://i.ytimg.com/vi/${encodeURIComponent(safeShortsId)}/hqdefault.jpg`
+    thumbnailUrl: `https://i.ytimg.com/vi/${encodeURIComponent(safeShortsId)}/hqdefault.jpg`,
+    embedUrl: `https://www.youtube.com/embed/${encodeURIComponent(safeShortsId)}?autoplay=1&loop=1&playlist=${encodeURIComponent(safeShortsId)}`
   };
 }
 
 function pickReplaceTarget() {
-  const video = document.querySelector('video');
+  const candidates = [];
 
-  if (video) {
-    return {
-      element: video,
-      replacedTagType: 'video'
-    };
+  document.querySelectorAll('img:not([data-shorts-spreader-delivered])').forEach((img) => {
+    if (img.offsetWidth > 30 && img.offsetHeight > 30) {
+      candidates.push({ element: img, replacedTagType: 'img' });
+    }
+  });
+
+  document.querySelectorAll('video').forEach((video) => {
+    candidates.push({ element: video, replacedTagType: 'video' });
+  });
+
+  if (candidates.length === 0) {
+    return null;
   }
 
-  const image = document.querySelector('img');
-
-  if (image) {
-    return {
-      element: image,
-      replacedTagType: 'img'
-    };
-  }
-
-  return null;
+  return candidates[Math.floor(Math.random() * candidates.length)];
 }
 
 function removeExistingOverlay() {
@@ -201,39 +201,61 @@ function attachOverlay(payload, shortsAssets) {
   overlay.style.right = '16px';
   overlay.style.bottom = '16px';
   overlay.style.zIndex = '2147483647';
-  overlay.style.padding = '10px 12px';
-  overlay.style.maxWidth = '280px';
+  overlay.style.padding = '0';
+  overlay.style.width = '240px';
   overlay.style.borderRadius = '12px';
   overlay.style.background = 'rgba(18, 12, 9, 0.95)';
   overlay.style.color = '#fff3df';
   overlay.style.fontFamily = "Georgia, 'Times New Roman', serif";
   overlay.style.boxShadow = '0 10px 28px rgba(0, 0, 0, 0.4)';
   overlay.style.border = '1px solid rgba(255, 206, 143, 0.45)';
-  const title = document.createElement('strong');
-  title.style.display = 'block';
-  title.style.marginBottom = '4px';
-  title.textContent = 'Incoming Shorts';
+  overlay.style.overflow = 'hidden';
+
+  if (shortsAssets.embedUrl) {
+    const muted = payload?.hitMuted === true;
+    const muteParam = muted ? '&mute=1' : '';
+    const iframe = document.createElement('iframe');
+    iframe.src = shortsAssets.embedUrl + muteParam;
+    iframe.style.width = '240px';
+    iframe.style.height = '427px';
+    iframe.style.border = 'none';
+    iframe.style.display = 'block';
+    iframe.style.borderRadius = '12px 12px 0 0';
+    iframe.allow = 'autoplay; encrypted-media';
+    iframe.setAttribute('allowfullscreen', '');
+    overlay.appendChild(iframe);
+  }
+
+  const info = document.createElement('div');
+  info.style.padding = '8px 10px';
 
   const message = document.createElement('span');
   message.style.display = 'block';
-  message.style.fontSize = '12px';
-  message.style.lineHeight = '1.4';
-  message.textContent = `${payload?.spreaderName || 'Someone'} spread ${payload?.shortsTitle || 'a short'}.`;
+  message.style.fontSize = '11px';
+  message.style.lineHeight = '1.3';
+  message.textContent = `${payload?.spreaderName || '누군가'}이(가) ${payload?.shortsTitle || '쇼츠'}를 살포했습니다.`;
+  info.appendChild(message);
 
-  const link = document.createElement('a');
-  link.href = shortsAssets.shortsUrl;
-  link.target = '_blank';
-  link.rel = 'noopener noreferrer';
-  link.style.display = 'inline-block';
-  link.style.marginTop = '8px';
-  link.style.fontSize = '12px';
-  link.style.color = '#ffd98a';
-  link.textContent = 'Open on YouTube';
+  const closeBtn = document.createElement('button');
+  closeBtn.textContent = '\u2715';
+  closeBtn.style.position = 'absolute';
+  closeBtn.style.top = '6px';
+  closeBtn.style.right = '6px';
+  closeBtn.style.background = 'rgba(0,0,0,0.6)';
+  closeBtn.style.color = '#fff';
+  closeBtn.style.border = 'none';
+  closeBtn.style.borderRadius = '50%';
+  closeBtn.style.width = '22px';
+  closeBtn.style.height = '22px';
+  closeBtn.style.cursor = 'pointer';
+  closeBtn.style.fontSize = '12px';
+  closeBtn.style.lineHeight = '22px';
+  closeBtn.style.textAlign = 'center';
+  closeBtn.style.zIndex = '1';
+  closeBtn.addEventListener('click', () => overlay.remove());
 
-  overlay.appendChild(title);
-  overlay.appendChild(message);
-  overlay.appendChild(link);
-
+  overlay.appendChild(info);
+  overlay.appendChild(closeBtn);
   document.body.appendChild(overlay);
 }
 
@@ -244,7 +266,7 @@ function applyReplaceToImage(image, shortsAssets) {
 
   image.dataset.shortsSpreaderOriginalSrc = image.currentSrc || image.src || '';
   image.src = shortsAssets.thumbnailUrl;
-  image.alt = 'Delivered Shorts thumbnail';
+  image.alt = '전달된 쇼츠 썸네일';
   image.dataset.shortsSpreaderDelivered = 'true';
   return true;
 }

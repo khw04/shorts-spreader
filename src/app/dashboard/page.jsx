@@ -19,7 +19,7 @@ import {
 
 function formatTimestamp(value) {
   if (!value) {
-    return 'Waiting for first sync';
+    return '첫 동기화 대기 중';
   }
 
   try {
@@ -36,7 +36,7 @@ function buildSocketUrl() {
 
   const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
 
-  return `${protocol}://${window.location.host}`;
+  return `${protocol}://${window.location.host}/ws/`;
 }
 
 async function fetchDashboardData(signal) {
@@ -157,29 +157,29 @@ export default function DashboardPage() {
     };
   }, [dashboardData.clients.dashboards.length, dashboardData.clients.extensions.length]);
 
-  const refreshLabel = isLoading || isRefreshing ? 'Syncing...' : 'Snapshot refresh';
+  const refreshLabel = isLoading || isRefreshing ? '동기화 중...' : '스냅샷 새로고침';
 
   return (
     <main className={styles.surface}>
       <div className={styles.container}>
         <header className={styles.pageHeader}>
           <div className={styles.pageHeaderCopy}>
-            <span className={styles.eyebrow}>Dashboard / live operations shell</span>
-            <h1 className={styles.pageTitle}>Realtime spread monitor</h1>
+            <span className={styles.eyebrow}>대시보드 / 실시간 운영</span>
+            <h1 className={styles.pageTitle}>실시간 살포 모니터</h1>
             <p className={styles.sectionLead}>
               `/api/stats` 스냅샷으로 부트스트랩하고 websocket 이벤트로 이어 붙이는 Task 4 대시보드 셸입니다.
             </p>
             <div className={styles.dashboardMeta}>
-              <span className={styles.metaChip}>extensions {dashboardMeta.extensionCount}</span>
-              <span className={styles.metaChip}>dashboards {dashboardMeta.dashboardCount}</span>
-              <span className={styles.metaChip}>last sync {formatTimestamp(lastUpdatedAt)}</span>
+              <span className={styles.metaChip}>확장 프로그램 {dashboardMeta.extensionCount}</span>
+              <span className={styles.metaChip}>대시보드 {dashboardMeta.dashboardCount}</span>
+              <span className={styles.metaChip}>마지막 동기화 {formatTimestamp(lastUpdatedAt)}</span>
             </div>
           </div>
 
           <div className={styles.stack}>
             <div className={styles.statusBadge} data-status={connectionStatus}>
               <span className={styles.statusDot} />
-              <span className={styles.statusLabel}>socket {connectionStatus}</span>
+              <span className={styles.statusLabel}>소켓 {connectionStatus}</span>
             </div>
             <div className={styles.dashboardActions}>
               <button className={styles.buttonRefresh} disabled={isLoading || isRefreshing} onClick={handleRefresh} type="button">
@@ -192,7 +192,7 @@ export default function DashboardPage() {
           </div>
         </header>
 
-        {errorMessage ? <p className={styles.errorBanner}>Unable to load dashboard data: {errorMessage}</p> : null}
+        {errorMessage ? <p className={styles.errorBanner}>대시보드 데이터를 불러올 수 없습니다: {errorMessage}</p> : null}
 
         <div className={styles.stack}>
           <StatCards errorMessage={errorMessage} isLoading={isLoading} stats={dashboardData.stats} />

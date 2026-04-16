@@ -69,12 +69,12 @@ function setConnectionState(nextState) {
 }
 
 function buildFallbackUrls(primaryUrl) {
-  if (primaryUrl === 'ws://127.0.0.1:3000') {
-    return ['ws://localhost:3000'];
+  if (primaryUrl === 'ws://127.0.0.1:3000/ws/') {
+    return ['ws://localhost:3000/ws/'];
   }
 
-  if (primaryUrl === 'ws://localhost:3000') {
-    return ['ws://127.0.0.1:3000'];
+  if (primaryUrl === 'ws://localhost:3000/ws/') {
+    return ['ws://127.0.0.1:3000/ws/'];
   }
 
   return [];
@@ -120,7 +120,7 @@ function deriveConnectionUrls(serverOrigin) {
 
   return {
     serverOrigin: normalizedOrigin,
-    websocketUrl: `${wsProtocol}//${serverUrl.host}`,
+    websocketUrl: `${wsProtocol}//${serverUrl.host}/ws/`,
     dashboardUrl: `${serverUrl.protocol}//${serverUrl.host}/dashboard`
   };
 }
@@ -253,12 +253,12 @@ async function syncOffscreenConnection(options = {}) {
     return { ok: false, error: 'offscreen_unavailable' };
   }
 
-  state.connectionStatus = 'connecting';
   if (options.reconnect === true) {
+    state.connectionStatus = 'connecting';
     state.lastError = null;
+    state.websocketActiveUrl = state.websocketUrl;
+    broadcastState();
   }
-  state.websocketActiveUrl = state.websocketUrl;
-  broadcastState();
 
   return sendRuntimeMessage({
     type: 'offscreen_sync',
@@ -301,18 +301,23 @@ function updatePersonalCounters(counters) {
   };
 }
 
-function deliverHitToActiveTab(payload) {
+async function deliverHitToActiveTab(payload) {
   const tabId = state.activeTab?.tabId;
 
   if (!tabId) {
+    console.warn('[ShortsSpreader] hit skipped: no active tab', payload?.spreadId);
     return;
   }
 
+  const stored = await chrome.storage.local.get(['hitMuted']);
+  const hitMuted = stored.hitMuted === true;
+
   chrome.tabs.sendMessage(tabId, {
     type: 'deliver_hit',
-    payload
+    payload: { ...payload, hitMuted }
   }, async (response) => {
     if (chrome.runtime.lastError) {
+      console.warn('[ShortsSpreader] hit delivery failed:', chrome.runtime.lastError.message, { tabId, spreadId: payload?.spreadId });
       return;
     }
 
@@ -374,7 +379,7 @@ async function ensureIdentity() {
 }
 
 function normalizeTabSnapshot(snapshot, tabIdOverride) {
-  const pageUrl = snapshot?.pageUrl || '';
+  const pageUrl = snapshot?.pageUrl || 'about:blank';
   const siteDomain = snapshot?.siteDomain || getSiteDomain(pageUrl);
   const eligibility = typeof snapshot?.isEligible === 'boolean'
     ? {
@@ -386,7 +391,7 @@ function normalizeTabSnapshot(snapshot, tabIdOverride) {
   return {
     tabId: Number(tabIdOverride ?? snapshot?.tabId ?? 0),
     pageUrl,
-    pageTitle: snapshot?.pageTitle || 'Untitled page',
+    pageTitle: snapshot?.pageTitle || '제목 없는 페이지',
     siteDomain,
     isEligible: eligibility.isEligible,
     ineligibleReason: eligibility.ineligibleReason
@@ -429,7 +434,7 @@ async function refreshActiveTabSnapshot() {
   state.activeTab = normalizeTabSnapshot({
     tabId: activeTab.id,
     pageUrl: activeTab.url || '',
-    pageTitle: activeTab.title || 'Untitled page'
+    pageTitle: activeTab.title || '제목 없는 페이지'
   }, activeTab.id);
   broadcastState();
   await syncOffscreenConnection();
@@ -466,14 +471,14 @@ async function buildSpreadPayloadFromActiveTab() {
   try {
     parsedUrl = new URL(pageUrl);
   } catch {
-    return { ok: false, error: 'Active tab does not have a valid URL.' };
+    return { ok: false, error: '현재 탭의 URL이 유효하지 않습니다.' };
   }
 
   const isShortsPage = ['youtube.com', 'www.youtube.com', 'm.youtube.com'].includes(parsedUrl.hostname)
     && parsedUrl.pathname.startsWith('/shorts/');
 
   if (!isShortsPage) {
-    return { ok: false, error: 'Open a YouTube Shorts tab first.' };
+    return { ok: false, error: '먼저 유튜브 쇼츠 탭을 열어주세요.' };
   }
 
   const shortsTitle = (activeTab?.title || 'YouTube Shorts').replace(/\s*-\s*YouTube\s*$/, '').trim();
@@ -493,7 +498,7 @@ function normalizeShortsRequest(payload) {
   const providedTitle = typeof payload?.shortsTitle === 'string' ? payload.shortsTitle.trim() : '';
 
   if (!shortsUrl) {
-    return { ok: false, error: 'Shorts URL is required.' };
+    return { ok: false, error: '쇼츠 URL이 필요합니다.' };
   }
 
   let parsedUrl;
@@ -501,13 +506,13 @@ function normalizeShortsRequest(payload) {
   try {
     parsedUrl = new URL(shortsUrl);
   } catch {
-    return { ok: false, error: 'Shorts URL must be valid.' };
+    return { ok: false, error: '유효한 쇼츠 URL이어야 합니다.' };
   }
 
   const isYoutubeHost = ['youtube.com', 'www.youtube.com', 'm.youtube.com', 'youtu.be'].includes(parsedUrl.hostname);
 
   if (!isYoutubeHost) {
-    return { ok: false, error: 'Use a YouTube Shorts URL.' };
+    return { ok: false, error: '유튜브 쇼츠 URL을 사용해주세요.' };
   }
 
   const derivedTitle = providedTitle || `Shorts ${parsedUrl.pathname.split('/').filter(Boolean).at(-1) || 'clip'}`;
@@ -532,7 +537,7 @@ async function handleSpreadRequest(rawPayload) {
   }
 
   if (state.connectionStatus !== 'connected') {
-    return { ok: false, error: 'WebSocket is not connected yet.' };
+    return { ok: false, error: '웹소켓이 아직 연결되지 않았습니다.' };
   }
 
   const sent = await sendSocketMessage({
@@ -541,13 +546,21 @@ async function handleSpreadRequest(rawPayload) {
   });
 
   if (!sent) {
-    return { ok: false, error: 'Spread send failed. Try again after reconnect.' };
+    return { ok: false, error: '살포 전송 실패. 재연결 후 다시 시도해주세요.' };
   }
 
   return {
     ok: true,
-    message: `Spread queued as ${normalized.payload.spreaderName}.`
+    message: `살포 요청 완료: ${normalized.payload.spreaderName}.`
   };
+}
+
+const KEEPALIVE_ALARM_NAME = 'shorts-spreader-keepalive';
+const KEEPALIVE_INTERVAL_MINUTES = 0.4;
+
+async function ensureConnection() {
+  await ensureOffscreenDocument();
+  await syncOffscreenConnection();
 }
 
 async function initialize() {
@@ -556,23 +569,43 @@ async function initialize() {
   }
 
   initPromise = (async () => {
-    await ensureIdentity();
-    await loadConnectionSettings();
-    await probeHttpServer();
-    await ensureOffscreenDocument();
-    await refreshActiveTabSnapshot();
-    await syncOffscreenConnection({ reconnect: true });
-    broadcastState();
+    try {
+      await ensureIdentity();
+      await loadConnectionSettings();
+      await ensureOffscreenDocument();
+      await refreshActiveTabSnapshot();
+      await syncOffscreenConnection();
+      probeHttpServer();
+      broadcastState();
+    } catch (error) {
+      initPromise = null;
+      throw error;
+    }
   })();
 
   return initPromise;
 }
 
+function startKeepalive() {
+  chrome.alarms.create(KEEPALIVE_ALARM_NAME, {
+    delayInMinutes: KEEPALIVE_INTERVAL_MINUTES,
+    periodInMinutes: KEEPALIVE_INTERVAL_MINUTES
+  });
+}
+
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === KEEPALIVE_ALARM_NAME) {
+    initialize().then(ensureConnection);
+  }
+});
+
 chrome.runtime.onInstalled.addListener(() => {
+  startKeepalive();
   initialize();
 });
 
 chrome.runtime.onStartup.addListener(() => {
+  startKeepalive();
   initialize();
 });
 
@@ -597,7 +630,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message?.type === 'offscreen_ready') {
-    initialize().then(() => syncOffscreenConnection({ reconnect: true }));
+    initialize().then(() => syncOffscreenConnection());
+    startKeepalive();
     return false;
   }
 
@@ -641,4 +675,5 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   return false;
 });
 
+startKeepalive();
 initialize();
