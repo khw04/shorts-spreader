@@ -1,0 +1,10 @@
+node_modules
+.next
+.git
+.omc
+.claude
+tests
+*.md
+.dockerignore
+docker-compose.yml
+Dockerfile
