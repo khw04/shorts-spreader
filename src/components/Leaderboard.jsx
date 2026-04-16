@@ -29,11 +29,11 @@ export function Leaderboard({ leaderboard, isLoading = false, errorMessage = '' 
       <section className={styles.sectionCard}>
         <div className={styles.sectionHeader}>
           <div className={styles.sectionHeading}>
-            <span className={styles.eyebrow}>Rankings</span>
-            <h2 className={styles.sectionTitle}>Leaderboard</h2>
+            <span className={styles.eyebrow}>순위</span>
+            <h2 className={styles.sectionTitle}>리더보드</h2>
           </div>
         </div>
-        <p className={styles.emptyState}>Loading leaderboard...</p>
+        <p className={styles.emptyState}>리더보드 불러오는 중...</p>
       </section>
     );
   }
@@ -43,11 +43,11 @@ export function Leaderboard({ leaderboard, isLoading = false, errorMessage = '' 
       <section className={styles.sectionCard}>
         <div className={styles.sectionHeader}>
           <div className={styles.sectionHeading}>
-            <span className={styles.eyebrow}>Rankings</span>
-            <h2 className={styles.sectionTitle}>Leaderboard</h2>
+            <span className={styles.eyebrow}>순위</span>
+            <h2 className={styles.sectionTitle}>리더보드</h2>
           </div>
         </div>
-        <p className={styles.emptyState}>Unable to load leaderboard.</p>
+        <p className={styles.emptyState}>리더보드를 불러올 수 없습니다.</p>
       </section>
     );
   }
@@ -60,28 +60,28 @@ export function Leaderboard({ leaderboard, isLoading = false, errorMessage = '' 
     <section className={styles.sectionCard}>
       <div className={styles.sectionHeader}>
         <div className={styles.sectionHeading}>
-          <span className={styles.eyebrow}>Rankings</span>
-          <h2 className={styles.sectionTitle}>Leaderboard</h2>
+          <span className={styles.eyebrow}>순위</span>
+          <h2 className={styles.sectionTitle}>리더보드</h2>
         </div>
-        <p className={styles.subtleText}>Local deltas update spreaders, hitters, and hit sites between snapshot refreshes.</p>
+        <p className={styles.subtleText}>스냅샷 새로고침 사이에 로컬 델타가 살포자, 적중자, 적중 사이트를 갱신합니다.</p>
       </div>
       <div className={styles.leaderboardGrid}>
       <LeaderboardList
-        emptyMessage="No spread rankings yet."
+        emptyMessage="아직 살포 순위가 없습니다."
         entries={Array.isArray(normalizedLeaderboard.spreaders) ? normalizedLeaderboard.spreaders : []}
-        title="Top Spreaders"
+        title="살포 순위"
         valueKey="totalSpreads"
       />
       <LeaderboardList
-        emptyMessage="No hit rankings yet."
+        emptyMessage="아직 적중 순위가 없습니다."
         entries={Array.isArray(normalizedLeaderboard.hitters) ? normalizedLeaderboard.hitters : []}
-        title="Top Hitters"
+        title="적중 순위"
         valueKey="totalHits"
       />
       <LeaderboardList
-        emptyMessage="No site rankings yet."
+        emptyMessage="아직 사이트 순위가 없습니다."
         entries={Array.isArray(normalizedLeaderboard.sites) ? normalizedLeaderboard.sites : []}
-        title="Top Sites"
+        title="사이트 순위"
         valueKey="totalHits"
       />
       </div>

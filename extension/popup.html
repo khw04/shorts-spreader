@@ -1,49 +1,52 @@
 <!doctype html>
-<html lang="en">
+<html lang="ko">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Shorts Spreader</title>
+    <title>쇼츠 살포기</title>
     <link rel="stylesheet" href="popup.css" />
   </head>
   <body>
     <main class="shell">
       <section class="hero">
-        <p class="eyebrow">Task 5 connection</p>
+        <p class="eyebrow">연결 상태</p>
         <div class="hero-row">
-          <h1>Shorts Spreader</h1>
-          <span id="connection-pill" class="pill disconnected">Disconnected</span>
+          <h1>쇼츠 살포기</h1>
+          <span id="connection-pill" class="pill disconnected">연결 끊김</span>
         </div>
-        <p id="status-copy" class="status-copy">Background service is checking the socket.</p>
-        <p id="socket-meta" class="status-copy">Socket info will appear here.</p>
-        <p id="http-meta" class="status-copy">HTTP probe will appear here.</p>
+        <p id="status-copy" class="status-copy">백그라운드에서 소켓을 확인하고 있습니다.</p>
+        <p id="socket-meta" class="status-copy">소켓 정보가 여기에 표시됩니다.</p>
+        <p id="http-meta" class="status-copy">HTTP 상태가 여기에 표시됩니다.</p>
       </section>
 
       <section class="panel">
         <label class="field" for="nickname-input">
-          <span>Nickname</span>
-          <input id="nickname-input" type="text" maxlength="40" placeholder="Quiet Otter" autocomplete="off" />
+          <span>닉네임</span>
+          <input id="nickname-input" type="text" maxlength="40" placeholder="조용한 수달" autocomplete="off" />
         </label>
-        <button id="save-nickname-button" class="primary-button" type="button">Save nickname</button>
+        <button id="save-nickname-button" class="primary-button" type="button">닉네임 저장</button>
       </section>
 
       <section class="panel">
-        <button id="spread-button" class="primary-button" type="button">Spread current shorts</button>
-        <p id="spread-status" class="status-copy">The active tab will be used automatically when it is a YouTube Shorts page.</p>
+        <label class="field mute-toggle">
+          <span>수신 소리</span>
+          <input id="mute-checkbox" type="checkbox" checked />
+          <span id="mute-label">켜짐</span>
+        </label>
       </section>
 
-      <section class="stats-grid" aria-label="My counters">
+      <section class="stats-grid" aria-label="내 카운터">
         <article class="stat-card">
-          <span class="stat-label">My spread count</span>
+          <span class="stat-label">내 살포 수</span>
           <strong id="spread-count">0</strong>
         </article>
         <article class="stat-card">
-          <span class="stat-label">My hit count</span>
+          <span class="stat-label">내 적중 수</span>
           <strong id="hit-count">0</strong>
         </article>
       </section>
 
-      <button id="dashboard-button" class="secondary-button" type="button">Open dashboard</button>
+      <button id="dashboard-button" class="secondary-button" type="button">대시보드 열기</button>
     </main>
     <script src="shared.js"></script>
     <script src="popup-state.js"></script>

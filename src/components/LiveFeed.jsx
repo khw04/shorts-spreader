@@ -7,22 +7,22 @@ function formatLogMessage(entry) {
   }
 
   if (entry.type === 'hit') {
-    const targetSite = entry.siteDomain || 'an unknown site';
-    const viewerName = entry.victimName || entry.victimClientId || 'Unknown viewer';
-    const deliveryMode = entry.deliveryMode || 'unknown mode';
+    const targetSite = entry.siteDomain || '알 수 없는 사이트';
+    const viewerName = entry.victimName || entry.victimClientId || '알 수 없는 시청자';
+    const deliveryMode = entry.deliveryMode || '알 수 없는 방식';
 
-    return `${viewerName} registered a hit on ${targetSite} via ${deliveryMode}.`;
+    return `${viewerName}이(가) ${deliveryMode}을(를) 통해 ${targetSite}에서 적중을 등록했습니다.`;
   }
 
-  const spreaderName = entry.spreaderName || entry.clientId || 'Unknown spreader';
+  const spreaderName = entry.spreaderName || entry.clientId || '알 수 없는 살포자';
   const spreadTargetCount = Number.isFinite(Number(entry.victimCount))
     ? Number(entry.victimCount)
     : Array.isArray(entry.victimClientIds)
       ? entry.victimClientIds.length
       : 0;
-  const shortLabel = entry.shortsTitle || entry.shortsUrl || entry.spreadId || 'an unknown short';
+  const shortLabel = entry.shortsTitle || entry.shortsUrl || entry.spreadId || '알 수 없는 쇼츠';
 
-  return `${spreaderName} spread ${shortLabel} to ${spreadTargetCount} target${spreadTargetCount === 1 ? '' : 's'}.`;
+  return `${spreaderName}이(가) ${shortLabel}을(를) ${spreadTargetCount}명에게 살포했습니다.`;
 }
 
 function formatLogTimestamp(entry) {
@@ -37,11 +37,11 @@ export function LiveFeed({ logs = [], isLoading = false, errorMessage = '' }) {
       <section className={styles.sectionCard}>
         <div className={styles.sectionHeader}>
           <div className={styles.sectionHeading}>
-            <span className={styles.eyebrow}>Realtime log</span>
-            <h2 className={styles.sectionTitle}>Live feed</h2>
+            <span className={styles.eyebrow}>실시간 로그</span>
+            <h2 className={styles.sectionTitle}>실시간 피드</h2>
           </div>
         </div>
-        <p className={styles.emptyState}>Loading events...</p>
+        <p className={styles.emptyState}>이벤트 불러오는 중...</p>
       </section>
     );
   }
@@ -51,11 +51,11 @@ export function LiveFeed({ logs = [], isLoading = false, errorMessage = '' }) {
       <section className={styles.sectionCard}>
         <div className={styles.sectionHeader}>
           <div className={styles.sectionHeading}>
-            <span className={styles.eyebrow}>Realtime log</span>
-            <h2 className={styles.sectionTitle}>Live feed</h2>
+            <span className={styles.eyebrow}>실시간 로그</span>
+            <h2 className={styles.sectionTitle}>실시간 피드</h2>
           </div>
         </div>
-        <p className={styles.emptyState}>Unable to load events.</p>
+        <p className={styles.emptyState}>이벤트를 불러올 수 없습니다.</p>
       </section>
     );
   }
@@ -65,11 +65,11 @@ export function LiveFeed({ logs = [], isLoading = false, errorMessage = '' }) {
       <section className={styles.sectionCard}>
         <div className={styles.sectionHeader}>
           <div className={styles.sectionHeading}>
-            <span className={styles.eyebrow}>Realtime log</span>
-            <h2 className={styles.sectionTitle}>Live feed</h2>
+            <span className={styles.eyebrow}>실시간 로그</span>
+            <h2 className={styles.sectionTitle}>실시간 피드</h2>
           </div>
         </div>
-        <p className={styles.emptyState}>No events yet.</p>
+        <p className={styles.emptyState}>아직 이벤트가 없습니다.</p>
       </section>
     );
   }
@@ -78,10 +78,10 @@ export function LiveFeed({ logs = [], isLoading = false, errorMessage = '' }) {
     <section className={styles.sectionCard}>
       <div className={styles.sectionHeader}>
         <div className={styles.sectionHeading}>
-          <span className={styles.eyebrow}>Realtime log</span>
-          <h2 className={styles.sectionTitle}>Live feed</h2>
+          <span className={styles.eyebrow}>실시간 로그</span>
+          <h2 className={styles.sectionTitle}>실시간 피드</h2>
         </div>
-        <p className={styles.subtleText}>Newest websocket events are prepended and the list stays capped.</p>
+        <p className={styles.subtleText}>최신 웹소켓 이벤트가 앞에 추가되며 목록 크기는 제한됩니다.</p>
       </div>
       <ul className={styles.feedList}>
         {logs.slice(0, 10).map((entry, index) => {
@@ -91,7 +91,7 @@ export function LiveFeed({ logs = [], isLoading = false, errorMessage = '' }) {
             <li className={styles.feedItem} key={entryKey}>
               <div className={styles.feedItemHeader}>
                 <span className={styles.feedBadge} data-event={entry.type === 'hit' ? 'hit' : 'spread'}>
-                  {entry.type === 'hit' ? 'hit' : 'spread'}
+                  {entry.type === 'hit' ? '적중' : '살포'}
                 </span>
                 <span className={styles.feedMeta}>{formatLogTimestamp(entry)}</span>
               </div>

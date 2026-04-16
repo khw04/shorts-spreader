@@ -59,10 +59,10 @@ export function NetworkGraph({ leaderboard, logs = [], stats = null }) {
     <section className={styles.sectionCard}>
       <div className={styles.sectionHeader}>
         <div className={styles.sectionHeading}>
-          <span className={styles.eyebrow}>Topology</span>
-          <h2 className={styles.sectionTitle}>Network graph</h2>
+          <span className={styles.eyebrow}>토폴로지</span>
+          <h2 className={styles.sectionTitle}>네트워크 그래프</h2>
         </div>
-        <p className={styles.subtleText}>Inline SVG only: spreaders left, sites right, hitters below the live hub.</p>
+        <p className={styles.subtleText}>인라인 SVG: 살포자는 왼쪽, 사이트는 오른쪽, 적중자는 실시간 허브 아래.</p>
       </div>
       <div className={styles.graphWrap}>
         <svg aria-label="Realtime network graph" className={styles.graphSvg} viewBox="0 0 100 100">
@@ -122,19 +122,19 @@ export function NetworkGraph({ leaderboard, logs = [], stats = null }) {
       <ul className={styles.graphLegend}>
         <li className={styles.graphLegendItem}>
           <span className={styles.graphLegendDot} style={{ '--legend-color': GROUP_COLORS.spreader }} />
-          spreaders
+          살포자
         </li>
         <li className={styles.graphLegendItem}>
           <span className={styles.graphLegendDot} style={{ '--legend-color': GROUP_COLORS.site }} />
-          sites
+          사이트
         </li>
         <li className={styles.graphLegendItem}>
           <span className={styles.graphLegendDot} style={{ '--legend-color': GROUP_COLORS.hitter }} />
-          hitters
+          적중자
         </li>
       </ul>
       <p className={styles.graphCaption}>
-        Active users {stats?.activeUsers || 0} · total spreads {stats?.totalSpreads || 0} · total hits {stats?.totalHits || 0}
+        활성 사용자 {stats?.activeUsers || 0} · 총 살포 수 {stats?.totalSpreads || 0} · 총 적중 수 {stats?.totalHits || 0}
       </p>
     </section>
   );
