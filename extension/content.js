@@ -194,69 +194,104 @@ function removeExistingOverlay() {
 function attachOverlay(payload, shortsAssets) {
   removeExistingOverlay();
 
-  const overlay = document.createElement('aside');
+  const overlay = document.createElement('div');
   overlay.id = 'shorts-spreader-hit-overlay';
   overlay.setAttribute('role', 'status');
-  overlay.style.position = 'fixed';
-  overlay.style.right = '16px';
-  overlay.style.bottom = '16px';
-  overlay.style.zIndex = '2147483647';
-  overlay.style.padding = '0';
-  overlay.style.width = '240px';
-  overlay.style.borderRadius = '12px';
-  overlay.style.background = 'rgba(18, 12, 9, 0.95)';
-  overlay.style.color = '#fff3df';
-  overlay.style.fontFamily = "Georgia, 'Times New Roman', serif";
-  overlay.style.boxShadow = '0 10px 28px rgba(0, 0, 0, 0.4)';
-  overlay.style.border = '1px solid rgba(255, 206, 143, 0.45)';
-  overlay.style.overflow = 'hidden';
+  overlay.style.cssText = [
+    'position: fixed',
+    'inset: 0',
+    'z-index: 2147483647',
+    'background: rgba(0, 0, 0, 0.7)',
+    'backdrop-filter: blur(4px)',
+    '-webkit-backdrop-filter: blur(4px)',
+    'display: flex',
+    'align-items: center',
+    'justify-content: center',
+    'opacity: 0',
+    'transition: opacity 0.3s ease',
+    'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif'
+  ].join(';');
+
+  const modal = document.createElement('div');
+  modal.style.cssText = [
+    'position: relative',
+    'width: 360px',
+    'max-width: 90vw',
+    'background: #1a1a2e',
+    'border-radius: 16px',
+    'padding: 16px',
+    'box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5)',
+    'border: 1px solid rgba(255, 255, 255, 0.1)',
+    'transform: scale(0.95)',
+    'transition: transform 0.3s ease'
+  ].join(';');
+
+  const closeBtn = document.createElement('button');
+  closeBtn.textContent = '\u2715';
+  closeBtn.setAttribute('aria-label', '닫기');
+  closeBtn.style.cssText = [
+    'position: absolute',
+    'top: -12px',
+    'right: -12px',
+    'width: 32px',
+    'height: 32px',
+    'background: #ff3b30',
+    'color: #ffffff',
+    'border: none',
+    'border-radius: 50%',
+    'font-size: 16px',
+    'font-weight: 700',
+    'cursor: pointer',
+    'display: flex',
+    'align-items: center',
+    'justify-content: center',
+    'box-shadow: 0 4px 12px rgba(255, 59, 48, 0.4)',
+    'transition: transform 0.2s ease',
+    'z-index: 1'
+  ].join(';');
+  closeBtn.addEventListener('mouseenter', () => { closeBtn.style.transform = 'scale(1.1)'; });
+  closeBtn.addEventListener('mouseleave', () => { closeBtn.style.transform = 'scale(1)'; });
+  closeBtn.addEventListener('click', () => overlay.remove());
 
   if (shortsAssets.embedUrl) {
     const muted = payload?.hitMuted === true;
     const muteParam = muted ? '&mute=1' : '';
     const iframe = document.createElement('iframe');
     iframe.src = shortsAssets.embedUrl + muteParam;
-    iframe.style.width = '240px';
-    iframe.style.height = '427px';
-    iframe.style.border = 'none';
-    iframe.style.display = 'block';
-    iframe.style.borderRadius = '12px 12px 0 0';
+    iframe.style.cssText = [
+      'width: 100%',
+      'aspect-ratio: 9 / 16',
+      'border: none',
+      'border-radius: 8px',
+      'display: block'
+    ].join(';');
     iframe.allow = 'autoplay; encrypted-media';
     iframe.setAttribute('allowfullscreen', '');
-    overlay.appendChild(iframe);
+    modal.appendChild(iframe);
   }
 
-  const info = document.createElement('div');
-  info.style.padding = '8px 10px';
+  const label = document.createElement('div');
+  label.style.cssText = [
+    'text-align: center',
+    'margin-top: 12px',
+    'color: #ffffff',
+    'font-size: 14px',
+    'line-height: 1.4'
+  ].join(';');
+  const spreaderName = payload?.spreaderName || '누군가';
+  const shortsTitle = payload?.shortsTitle || '쇼츠';
+  label.innerHTML = `<strong style="color:#ff9500">${spreaderName}</strong>이(가) 살포한 쇼츠<br><span style="color:#888;font-size:12px">${shortsTitle}</span>`;
 
-  const message = document.createElement('span');
-  message.style.display = 'block';
-  message.style.fontSize = '11px';
-  message.style.lineHeight = '1.3';
-  message.textContent = `${payload?.spreaderName || '누군가'}이(가) ${payload?.shortsTitle || '쇼츠'}를 살포했습니다.`;
-  info.appendChild(message);
-
-  const closeBtn = document.createElement('button');
-  closeBtn.textContent = '\u2715';
-  closeBtn.style.position = 'absolute';
-  closeBtn.style.top = '6px';
-  closeBtn.style.right = '6px';
-  closeBtn.style.background = 'rgba(0,0,0,0.6)';
-  closeBtn.style.color = '#fff';
-  closeBtn.style.border = 'none';
-  closeBtn.style.borderRadius = '50%';
-  closeBtn.style.width = '22px';
-  closeBtn.style.height = '22px';
-  closeBtn.style.cursor = 'pointer';
-  closeBtn.style.fontSize = '12px';
-  closeBtn.style.lineHeight = '22px';
-  closeBtn.style.textAlign = 'center';
-  closeBtn.style.zIndex = '1';
-  closeBtn.addEventListener('click', () => overlay.remove());
-
-  overlay.appendChild(info);
-  overlay.appendChild(closeBtn);
+  modal.appendChild(closeBtn);
+  modal.appendChild(label);
+  overlay.appendChild(modal);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
   document.body.appendChild(overlay);
+
+  requestAnimationFrame(() => {
+    overlay.style.opacity = '1';
+    modal.style.transform = 'scale(1)';
+  });
 }
 
 function applyReplaceToImage(image, shortsAssets) {
