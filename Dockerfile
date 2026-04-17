@@ -2,6 +2,8 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+RUN apk add --no-cache zip
+
 COPY package.json package-lock.json ./
 RUN npm ci --ignore-scripts
 
