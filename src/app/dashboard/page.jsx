@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import useWebSocket from '../../hooks/useWebSocket';
 import './dashboard.css';
 
@@ -163,8 +163,6 @@ function Leaderboard({ leaderboard }) {
 export default function DashboardPage() {
   const { stats, events, isConnected } = useWebSocket();
   const [leaderboard, setLeaderboard] = useState({ spreaders: [], hitters: [], sites: [] });
-  const debounceRef = useRef(null);
-  const isFirstLoad = useRef(true);
 
   useEffect(() => {
     const fetchLeaderboard = () => {
@@ -181,15 +179,7 @@ export default function DashboardPage() {
         .catch(() => {});
     };
 
-    if (isFirstLoad.current) {
-      isFirstLoad.current = false;
-      fetchLeaderboard();
-      return;
-    }
-
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(fetchLeaderboard, 3000);
-    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+    fetchLeaderboard();
   }, [stats.totalSpreads, stats.totalHits]);
 
   return (
