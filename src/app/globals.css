@@ -1,76 +1,61 @@
 :root {
-  --surface-base: #050608;
-  --surface-deep: #090b0f;
-  --surface-glass: rgba(17, 21, 27, 0.78);
-  --surface-panel: rgba(20, 24, 32, 0.92);
-  --surface-panel-soft: rgba(255, 255, 255, 0.04);
-  --surface-line: rgba(255, 255, 255, 0.1);
-  --surface-line-strong: rgba(255, 255, 255, 0.16);
-  --surface-grid: rgba(255, 255, 255, 0.03);
-  --text-primary: #f7ebd7;
-  --text-secondary: #c1b4a1;
-  --text-muted: #8d816f;
-  --accent-hot: #ff5a36;
-  --accent-warm: #ffaf38;
-  --accent-live: #79ff82;
-  --accent-cool: #92d8ff;
-  --accent-hot-glow: rgba(255, 90, 54, 0.28);
-  --accent-warm-glow: rgba(255, 175, 56, 0.24);
-  --accent-live-glow: rgba(121, 255, 130, 0.2);
-  --shadow-panel: 0 24px 80px rgba(0, 0, 0, 0.4);
-  --shadow-glow: 0 0 60px rgba(255, 90, 54, 0.16);
-  --blur-panel: blur(22px);
-  --radius-sm: 0.75rem;
-  --radius-md: 1rem;
-  --radius-lg: 1.5rem;
-  --radius-xl: 2rem;
-  --space-2xs: 0.375rem;
-  --space-xs: 0.5rem;
-  --space-sm: 0.75rem;
-  --space-md: 1rem;
-  --space-lg: 1.5rem;
-  --space-xl: 2rem;
-  --space-2xl: 3rem;
-  --space-3xl: 4rem;
-  --content-max: 78rem;
-  --font-display: 'IBM Plex Mono', 'JetBrains Mono', 'SFMono-Regular', 'Liberation Mono', monospace;
-  --transition-base: 180ms ease;
+  --bg: #0a0a0f;
+  --card-bg: rgba(255, 255, 255, 0.05);
+  --card-border: rgba(255, 255, 255, 0.1);
+  --red: #ff3b30;
+  --orange: #ff9500;
+  --neon-green: #30ff50;
+  --purple: #af52de;
+  --text: #ffffff;
+  --text-muted: #888888;
 }
 
 * {
+  margin: 0;
+  padding: 0;
   box-sizing: border-box;
 }
 
-html {
-  background:
-    radial-gradient(circle at top left, var(--accent-hot-glow), transparent 32%),
-    radial-gradient(circle at top right, var(--accent-live-glow), transparent 28%),
-    linear-gradient(180deg, var(--surface-deep) 0%, var(--surface-base) 100%);
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  min-height: 100vh;
 }
 
-body {
-  margin: 0;
-  min-height: 100vh;
-  color: var(--text-primary);
-  font-family: var(--font-display);
-  background:
-    radial-gradient(circle at top left, var(--accent-hot-glow), transparent 32%),
-    radial-gradient(circle at bottom right, var(--accent-warm-glow), transparent 26%),
-    linear-gradient(180deg, var(--surface-deep) 0%, var(--surface-base) 100%);
+h1, h2, h3 {
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
 }
 
 a {
-  color: inherit;
+  color: var(--orange);
+  text-decoration: none;
 }
 
-button,
-input,
-textarea,
-select {
-  font: inherit;
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 24px;
+  backdrop-filter: blur(10px);
 }
 
-::selection {
-  background: var(--accent-hot);
-  color: var(--surface-base);
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }

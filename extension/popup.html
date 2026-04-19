@@ -1,55 +1,53 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Shorts Spreader</title>
-    <link rel="stylesheet" href="popup.css" />
-  </head>
-  <body>
-    <main class="shell">
-      <section class="hero">
-        <p class="eyebrow">Task 5 connection</p>
-        <div class="hero-row">
-          <h1>Shorts Spreader</h1>
-          <span id="connection-pill" class="pill disconnected">Disconnected</span>
-        </div>
-        <p id="status-copy" class="status-copy">Background service is checking the socket.</p>
-        <p id="socket-meta" class="status-copy">Socket info will appear here.</p>
-        <p id="http-meta" class="status-copy">HTTP probe will appear here.</p>
-        <div class="hero-actions">
-          <button id="refresh-state-button" class="secondary-button refresh-button" type="button">Refresh state</button>
-        </div>
-      </section>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>쇼츠 살포기</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup">
+    <h1>🔥 쇼츠 살포기</h1>
 
-      <section class="panel">
-        <label class="field" for="nickname-input">
-          <span>Nickname</span>
-          <input id="nickname-input" type="text" maxlength="40" placeholder="Quiet Otter" autocomplete="off" />
-        </label>
-        <button id="save-nickname-button" class="primary-button" type="button">Save nickname</button>
-      </section>
+    <div class="status-block">
+      <div id="connection-pill" class="status disconnected">🔴 연결 안됨</div>
+      <p id="status-copy" class="status-copy">연결 상태 확인 중...</p>
+      <p id="socket-meta" class="meta-text"></p>
+      <p id="http-meta" class="meta-text"></p>
+    </div>
 
-      <section class="panel">
-        <button id="spread-button" class="primary-button" type="button">Spread current shorts</button>
-        <p id="spread-status" class="status-copy">The active tab will be used automatically when it is a YouTube Shorts page.</p>
-      </section>
+    <div class="section">
+      <label>닉네임</label>
+      <div class="input-row">
+        <input type="text" id="nickname-input" maxlength="40" placeholder="조용한 수달" autocomplete="off">
+        <button id="save-nickname-button">저장</button>
+      </div>
+    </div>
 
-      <section class="stats-grid" aria-label="My counters">
-        <article class="stat-card">
-          <span class="stat-label">My spread count</span>
-          <strong id="spread-count">0</strong>
-        </article>
-        <article class="stat-card">
-          <span class="stat-label">My hit count</span>
-          <strong id="hit-count">0</strong>
-        </article>
-      </section>
+    <div class="section mute-section">
+      <label>수신 소리</label>
+      <div class="mute-row">
+        <input type="checkbox" id="mute-checkbox" checked>
+        <span id="mute-label">켜짐</span>
+      </div>
+    </div>
 
-      <button id="dashboard-button" class="secondary-button" type="button">Open dashboard</button>
-    </main>
-    <script src="shared.js"></script>
-    <script src="popup-state.js"></script>
-    <script src="popup.js"></script>
-  </body>
-  </html>
+    <div class="stats-row">
+      <div class="stat">
+        <div class="stat-num" id="spread-count">0</div>
+        <div class="stat-lbl">살포</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" id="hit-count">0</div>
+        <div class="stat-lbl">피격</div>
+      </div>
+    </div>
+
+    <button class="dashboard-btn" id="dashboard-button">📊 대시보드 열기</button>
+  </div>
+  <script src="shared.js"></script>
+  <script src="popup-state.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

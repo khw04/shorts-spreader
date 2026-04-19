@@ -4,12 +4,13 @@
     nickname: 'nickname',
     serverOrigin: 'serverOrigin',
     websocketUrl: 'websocketUrl',
-    dashboardUrl: 'dashboardUrl'
+    dashboardUrl: 'dashboardUrl',
+    hitVolume: 'hitVolume'
   };
 
-  const DEFAULT_SERVER_ORIGIN = 'http://127.0.0.1:3000';
-  const DEFAULT_WEBSOCKET_URL = 'ws://127.0.0.1:3000';
-  const DEFAULT_DASHBOARD_URL = 'http://127.0.0.1:3000/dashboard';
+  const DEFAULT_SERVER_ORIGIN = 'https://shorts-spread.w00.kr';
+  const DEFAULT_WEBSOCKET_URL = 'wss://shorts-spread.w00.kr/ws/';
+  const DEFAULT_DASHBOARD_URL = 'https://shorts-spread.w00.kr/dashboard';
   const MAX_RECONNECT_DELAY_MS = 30000;
   const BASE_RECONNECT_DELAY_MS = 1000;
   const NICKNAME_ADJECTIVES = ['Amber', 'Velvet', 'Solar', 'Mellow', 'Quiet', 'Lucky', 'Fable', 'Gentle'];
@@ -79,10 +80,11 @@
       };
     }
 
-    if (parsedUrl.hostname === 'www.youtube.com' || parsedUrl.hostname === 'youtube.com' || parsedUrl.hostname === 'm.youtube.com') {
+    const youtubeHosts = ['www.youtube.com', 'youtube.com', 'm.youtube.com'];
+    if (youtubeHosts.includes(parsedUrl.hostname) && parsedUrl.pathname.startsWith('/shorts/')) {
       return {
         isEligible: false,
-        ineligibleReason: 'youtube_tab'
+        ineligibleReason: 'youtube_shorts_tab'
       };
     }
 

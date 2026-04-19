@@ -6,6 +6,7 @@
   "main": "server.js",
   "scripts": {
     "dev": "node -e \"process.env.NODE_ENV='development'; require('./server')\"",
+    "prebuild": "node scripts/package-extension.js",
     "build": "next build",
     "start": "node -e \"process.env.NODE_ENV=process.env.NODE_ENV || 'production'; require('./server')\"",
     "lint": "eslint . --ext .js,.jsx",

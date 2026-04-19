@@ -25,15 +25,15 @@
   function formatConnectionLabel(connectionStatus) {
     switch (connectionStatus) {
       case 'connected':
-        return 'Connected';
+        return '연결됨';
       case 'connecting':
-        return 'Connecting…';
+        return '연결 중…';
       case 'reconnecting':
-        return 'Reconnecting…';
+        return '재연결 중…';
       case 'error':
-        return 'Disconnected';
+        return '연결 끊김';
       default:
-        return 'Disconnected';
+        return '연결 끊김';
     }
   }
 

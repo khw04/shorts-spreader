@@ -33,7 +33,7 @@ describe('extension popup state helpers', () => {
 
     expect(matching.totalSpreads).toBe(4);
     expect(matching.totalHits).toBe(2);
-    expect(matching.connectionLabel).toBe('Connected');
+    expect(matching.connectionLabel).toBe('연결됨');
   });
 
   it('marks non-open websocket states as disconnected in the popup', () => {
@@ -51,7 +51,7 @@ describe('extension popup state helpers', () => {
 
     expect(viewModel.isConnected).toBe(false);
     expect(viewModel.connectionTone).toBe('disconnected');
-    expect(viewModel.connectionLabel).toBe('Reconnecting…');
+    expect(viewModel.connectionLabel).toBe('재연결 중…');
     expect(viewModel.websocketUrl).toBe('ws://localhost:3000');
     expect(viewModel.websocketActiveUrl).toBe('ws://127.0.0.1:3000');
     expect(viewModel.httpProbeStatus).toBe('http_200');

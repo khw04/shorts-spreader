@@ -1,13 +1,20 @@
+const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-const outputPath = path.join(__dirname, '..', 'public', 'extension.zip');
-const placeholder = [
-  'This is a bootstrap placeholder for the packaged extension.',
-  'Task 1 only guarantees the package script target exists.'
-].join('\n');
+const extensionDir = path.join(__dirname, '..', 'extension');
+const outputDir = path.join(__dirname, '..', 'public');
+const outputPath = path.join(outputDir, 'extension.zip');
 
-fs.mkdirSync(path.dirname(outputPath), { recursive: true });
-fs.writeFileSync(outputPath, `${placeholder}\n`, 'utf8');
+fs.mkdirSync(outputDir, { recursive: true });
 
-console.log(`Created placeholder package at ${outputPath}`);
+if (fs.existsSync(outputPath)) {
+  fs.unlinkSync(outputPath);
+}
+
+execSync(`cd "${extensionDir}" && zip -r "${outputPath}" . -x ".*"`, {
+  stdio: 'inherit'
+});
+
+const stats = fs.statSync(outputPath);
+console.log(`Extension packaged: ${outputPath} (${(stats.size / 1024).toFixed(1)} KB)`);
