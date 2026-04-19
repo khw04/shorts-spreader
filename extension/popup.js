@@ -40,7 +40,9 @@ function render(state) {
     ? `소켓: ${viewModel.websocketActiveUrl || viewModel.websocketUrl} | ${viewModel.lastError}`
     : `소켓: ${viewModel.websocketActiveUrl || viewModel.websocketUrl}`;
   httpMeta.textContent = `HTTP: ${viewModel.httpProbeUrl || '없음'} | ${viewModel.httpProbeStatus || '대기'}`;
-  nicknameInput.value = viewModel.nickname;
+  if (document.activeElement !== nicknameInput) {
+    nicknameInput.value = viewModel.nickname;
+  }
   spreadCount.textContent = String(viewModel.totalSpreads);
   hitCount.textContent = String(viewModel.totalHits);
   dashboardButton.dataset.url = viewModel.dashboardUrl;

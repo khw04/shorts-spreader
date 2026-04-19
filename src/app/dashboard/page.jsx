@@ -1,6 +1,7 @@
 'use client';
 import useWebSocket from '../../hooks/useWebSocket';
 import './dashboard.css';
+// Note: 박우현 PR #5 (a61ecf4) 의도 복원 — 머지 충돌로 뒤집혔던 부분
 
 const SPREADER_POINTS = [{ x: 20, y: 25 }, { x: 14, y: 50 }, { x: 22, y: 75 }];
 const SITE_POINTS = [{ x: 80, y: 25 }, { x: 86, y: 50 }, { x: 78, y: 75 }];
@@ -160,36 +161,7 @@ function Leaderboard({ leaderboard }) {
 }
 
 export default function DashboardPage() {
-  const { stats, events, isConnected } = useWebSocket();
-  const [leaderboard, setLeaderboard] = useState({ spreaders: [], hitters: [], sites: [] });
-  const debounceRef = useRef(null);
-  const isFirstLoad = useRef(true);
-
-  useEffect(() => {
-    const fetchLeaderboard = () => {
-      fetch('/api/leaderboard')
-        .then((r) => r.json())
-        .then((data) => {
-          const payload = data?.ok && data.data ? data.data : data || {};
-          setLeaderboard({
-            spreaders: payload.spreaders || [],
-            hitters: payload.hitters || [],
-            sites: payload.sites || [],
-          });
-        })
-        .catch(() => {});
-    };
-
-    if (isFirstLoad.current) {
-      isFirstLoad.current = false;
-      fetchLeaderboard();
-      return;
-    }
-
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(fetchLeaderboard, 3000);
-    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
-  }, [stats.totalSpreads, stats.totalHits]);
+  const { stats, events, leaderboard, isConnected } = useWebSocket();
 
   return (
     <div className="dashboard">
